@@ -50,3 +50,17 @@ input BookInput {
 }
 ```
 
+### Doing queries
+I used curl
+
+A simple createBook mutation might look like this:
+```sh
+curl localhost:8080/graphql -v -d 'mutation {createBook(input: {title:"Coot", author:"Boo", publishedYear:2026}){title author publishedYear}}'
+```
+
+An example of a book query to see authors would look like this.
+```sh
+curl localhost:8080/graphql -d 'query {books {id author}}'
+```
+
+As noted the endpoint is the `localhost:8080/graphql`
