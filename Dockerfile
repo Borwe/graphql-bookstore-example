@@ -1,0 +1,5 @@
+FROM postgres:17.2
+
+ENV POSTGRES_PASSWORD="test"
+ENV POSTGRES_USER="test"
+ENV POSTGRES_DB="test"
