@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/graphql-go/graphql"
-	//"gorm.io/driver/postgres"
-	//"gorm.io/gorm"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var FakeDB = []Book{
@@ -41,13 +41,15 @@ type BookInput struct {
 }
 
 func main(){
-    //dsn := "host=localhost user=test password=test dbname=test port=5432 sslmode=disable"
-    //DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-    //if err!= nil {
-    //    panic("Failed to connect")
-    //}
+    dsn := "host=localhost user=test password=test dbname=test port=5432 sslmode=disable"
+    DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err!= nil {
+        panic("Failed to connect")
+    }
 
-    //DB.AutoMigrate(&Book{})
+    if err:=DB.AutoMigrate(&Book{}); err!= nil {
+	panic(fmt.Sprintf("DB migrate failed with error: %s\n", err))
+    }
 
     //book type
     bookType := graphql.NewObject(
@@ -115,6 +117,32 @@ func main(){
 
 
     mutationFields := graphql.Fields{
+	"deleteBook": &graphql.Field{
+	    Type: graphql.NewNonNull(graphql.Boolean),
+	    Args: graphql.FieldConfigArgument{
+		"id": &graphql.ArgumentConfig{
+		    Type: graphql.NewNonNull(graphql.Int),
+		},
+	    },
+	    Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		id, ok := p.Args["id"].(int)
+		if !ok {
+		    return nil, errors.New("Need to pass `id` field")
+		}
+
+		newBooks := []Book{}
+		found := false
+		for _, b := range FakeDB {
+		    if b.Id == uint(id){
+			found = true
+			continue
+		    }
+		    newBooks = append(newBooks, b)
+		}
+		FakeDB = newBooks
+		return found, nil
+	    },
+	},
 	"updateBook": &graphql.Field{
 	    Type: graphql.NewNonNull(bookType),
 	    Args: graphql.FieldConfigArgument{
