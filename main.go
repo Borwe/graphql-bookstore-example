@@ -98,7 +98,10 @@ func main(){
 		}
 		//get from db
 		var book Book
-		DB.Find(&book, v)
+		result := DB.Find(&book, v)
+		if result.Error != nil {
+		    return nil, result.Error
+		}
 		return book, nil
 	    },
 	},
@@ -118,7 +121,10 @@ func main(){
 		if !ok {
 		    return nil, errors.New("Need to pass `id` field")
 		}
-		DB.Delete(&Book{}, id)
+		result := DB.Delete(&Book{}, id)
+		if result.Error != nil {
+		    return nil, result.Error
+		}
 		return true, nil
 	    },
 	},
@@ -151,7 +157,10 @@ func main(){
 		book.PublishedYear = v["publishedYear"].(int)
 		book.Title = v["title"].(string)
 		fmt.Println("COME ON!!!!", book)
-		DB.Save(&book)
+		result = DB.Save(&book)
+		if result.Error != nil {
+		    return nil, result.Error
+		}
 		return book, nil
 	    },
 	},
@@ -174,7 +183,10 @@ func main(){
 		    PublishedYear: v["publishedYear"].(int),
 		}
 
-		DB.Create(&book)
+		result := DB.Create(&book)
+		if result.Error != nil {
+		    return nil, result.Error
+		}
 		return book, nil
 	    },
 	},
