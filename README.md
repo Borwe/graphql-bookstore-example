@@ -9,7 +9,7 @@ Docker is required for running a postgres database instance, as passwords, usern
 ## Executing
 - Starting DB
 ```sh
-docker build -t xyzdb ./
+docker build -t xyzdb ./  ;
 docker run -p 5432:5432 -rm xyzdb
 ```
 Note, name `xyzdb` to whatever you prefer
