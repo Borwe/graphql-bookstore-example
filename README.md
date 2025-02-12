@@ -7,11 +7,19 @@
 Docker is required for running a postgres database instance, as passwords, username are hardcoded (this was just an example)
 
 ## Executing
+- Starting DB
+```sh
+docker build -t xyzdb ./
+docker run -p 5432:5432 -rm xyzdb
+```
+Note, name `xyzdb` to whatever you prefer
+
+- Running server
 ```sh
 go run main.go
 ```
 
-Not, server uses port 8080 when it starts, and will print out queries it recieves, 
+Note, server uses port 8080 when it starts, and will print out queries it recieves, 
 also errors should the occur due to bad input.
 
 ## Graphql schema implemented.
