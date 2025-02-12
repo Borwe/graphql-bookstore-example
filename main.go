@@ -115,6 +115,43 @@ func main(){
 
 
     mutationFields := graphql.Fields{
+	"updateBook": &graphql.Field{
+	    Type: graphql.NewNonNull(bookType),
+	    Args: graphql.FieldConfigArgument{
+		"id": &graphql.ArgumentConfig{
+		    Type: graphql.Int,
+		},
+		"input": &graphql.ArgumentConfig{
+		    Type: bookInputType,
+		},
+	    },
+	    Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+		id, ok := p.Args["id"].(int)
+		if !ok {
+		    return nil, errors.New("No `id` field passed")
+		}
+		v, ok := p.Args["input"].(map[string]interface{})
+		if !ok {
+		    return nil, errors.New("No `input` field passed")
+		}
+
+		var book Book
+		newBooks := []Book{}
+		for _, b := range FakeDB {
+		    if b.Id == uint(id) {
+			b.Author = v["author"].(string)
+			b.PublishedYear = v["publishedYear"].(int)
+			b.Title = v["title"].(string)
+			book = b
+			newBooks = append(newBooks, book)
+			continue
+		    }
+		    newBooks = append(newBooks, b)
+		}
+		FakeDB = newBooks
+		return book, nil
+	    },
+	},
 	"createBook": &graphql.Field{
 	    Type: graphql.NewNonNull(bookType),
 	    Args: graphql.FieldConfigArgument{
