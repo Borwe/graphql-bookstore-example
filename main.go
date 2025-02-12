@@ -12,23 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
-var FakeDB = []Book{
-    Book{
-	Id: 0,
-	Title: "A",
-	Author: "A",
-	PublishedYear: 2024,
-    },
-    Book{
-	Id: 1,
-	Title: "B",
-	Author: "B",
-	PublishedYear: 2025,
-    },
-}
-
 type Book struct {
-    Id uint `gorm:"primarykey"`
+    Id uint `gorm:"primaryKey"`
     Title string
     Author string
     PublishedYear int
@@ -94,7 +79,9 @@ func main(){
 	"books": &graphql.Field{
 	    Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(bookType))),
 	    Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-		return FakeDB, nil
+		var books []Book
+		DB.Find(&books)
+		return books, nil
 	    },
 	},
 	"book": &graphql.Field{
@@ -110,7 +97,9 @@ func main(){
 		    return nil, nil
 		}
 		//get from db
-		return FakeDB[v], nil
+		var book Book
+		DB.Find(&book, v)
+		return book, nil
 	    },
 	},
     }
@@ -129,18 +118,8 @@ func main(){
 		if !ok {
 		    return nil, errors.New("Need to pass `id` field")
 		}
-
-		newBooks := []Book{}
-		found := false
-		for _, b := range FakeDB {
-		    if b.Id == uint(id){
-			found = true
-			continue
-		    }
-		    newBooks = append(newBooks, b)
-		}
-		FakeDB = newBooks
-		return found, nil
+		DB.Delete(&Book{}, id)
+		return true, nil
 	    },
 	},
 	"updateBook": &graphql.Field{
@@ -164,19 +143,15 @@ func main(){
 		}
 
 		var book Book
-		newBooks := []Book{}
-		for _, b := range FakeDB {
-		    if b.Id == uint(id) {
-			b.Author = v["author"].(string)
-			b.PublishedYear = v["publishedYear"].(int)
-			b.Title = v["title"].(string)
-			book = b
-			newBooks = append(newBooks, book)
-			continue
-		    }
-		    newBooks = append(newBooks, b)
+		result := DB.Find(&book, &id)
+		if result.Error != nil {
+		    return nil, errors.New("Book with for updating not found")
 		}
-		FakeDB = newBooks
+		book.Author = v["author"].(string)
+		book.PublishedYear = v["publishedYear"].(int)
+		book.Title = v["title"].(string)
+		fmt.Println("COME ON!!!!", book)
+		DB.Save(&book)
 		return book, nil
 	    },
 	},
@@ -193,15 +168,13 @@ func main(){
 		    return nil, errors.New("Not valid input passed")
 		}
 
-		l := len(FakeDB)
 		book := Book{
-		    Id: uint(l),
 		    Title: v["title"].(string),
 		    Author: v["author"].(string),
 		    PublishedYear: v["publishedYear"].(int),
 		}
 
-		FakeDB = append(FakeDB, book)
+		DB.Create(&book)
 		return book, nil
 	    },
 	},
@@ -243,8 +216,10 @@ func main(){
 	})
 
 	if result.HasErrors() {
+	    fmt.Println("HAS ERROS:")
 	    fmt.Println(result.Errors)
-	    http.NotFound(w,r)
+	    w.WriteHeader(http.StatusBadRequest)
+	    w.Write([]byte(fmt.Sprintln(result.Errors)))
 	    return
 	}
 
