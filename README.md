@@ -7,12 +7,20 @@
 Docker is required for running a postgres database instance, as passwords, username are hardcoded (this was just an example)
 
 ## Executing
+- Build DB
+```sh
+docker build -t xyzdb ./
+```
 - Starting DB
 ```sh
-docker build -t xyzdb ./  ;
 docker run -p 5432:5432 -rm xyzdb
 ```
 Note, name `xyzdb` to whatever you prefer
+
+- Setting up env
+```sh
+go mod tidy
+```
 
 - Running server
 ```sh
